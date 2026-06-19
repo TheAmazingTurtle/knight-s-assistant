@@ -267,6 +267,14 @@ func buy_gold_upgrade(upgrade_id: String) -> bool:
 func get_special_upgrade_costs(upgrade_id: String) -> Array:
 	var config: Dictionary = upgrade_data.get("special_upgrades", {}).get(upgrade_id, {})
 	var level := get_upgrade_level(upgrade_id)
+	var sequence_id := str(config.get("cost_sequence", ""))
+	var sequence: Array = upgrade_data.get("special_cost_sequences", {}).get(sequence_id, [])
+	if not sequence.is_empty():
+		var sequence_index: int = min(level, sequence.size() - 1)
+		return [{
+			"loot": str(sequence[sequence_index]),
+			"amount": max(1, int(config.get("cost_amount", 1)))
+		}]
 	var growth := float(config.get("cost_growth", 1.4))
 	var scaled_costs: Array = []
 	for cost in config.get("costs", []):
