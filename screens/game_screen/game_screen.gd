@@ -15,6 +15,9 @@ const SPECIAL_UPGRADE_ORDER := [
 	"porter_tonic_multiplier",
 	"porter_tonic_cooldown"
 ]
+const KNIGHT_FIGHT_CENTER_RATIO := Vector2(0.52, 0.64)
+const ENEMY_FIGHT_CENTER_RATIO := Vector2(0.75, 0.58)
+const PORTER_HOME_CENTER_RATIO := Vector2(0.32, 0.7)
 
 var battle_area: Control
 var loot_layer: Control
@@ -635,7 +638,7 @@ func _layout_battle_objects() -> void:
 	if knight_view != null:
 		knight_view.position = _knight_center() - knight_view.size * 0.5
 	if enemy_view != null:
-		enemy_view.position = Vector2(area_size.x * 0.72, area_size.y * 0.58) - enemy_view.size * 0.5
+		enemy_view.position = Vector2(area_size.x * ENEMY_FIGHT_CENTER_RATIO.x, area_size.y * ENEMY_FIGHT_CENTER_RATIO.y) - enemy_view.size * 0.5
 	if porter_center == Vector2.ZERO:
 		porter_center = _porter_home_center()
 	if ability_row != null:
@@ -648,12 +651,12 @@ func _layout_battle_objects() -> void:
 
 func _knight_center() -> Vector2:
 	var area_size := battle_area.size
-	return Vector2(area_size.x * 0.34, area_size.y * 0.63)
+	return Vector2(area_size.x * KNIGHT_FIGHT_CENTER_RATIO.x, area_size.y * KNIGHT_FIGHT_CENTER_RATIO.y)
 
 
 func _porter_home_center() -> Vector2:
 	var area_size := battle_area.size
-	return Vector2(area_size.x * 0.2, area_size.y * 0.7)
+	return Vector2(area_size.x * PORTER_HOME_CENTER_RATIO.x, area_size.y * PORTER_HOME_CENTER_RATIO.y)
 
 
 func _show_victory() -> void:

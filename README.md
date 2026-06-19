@@ -12,6 +12,7 @@ Core MVP features:
 
 - Stage-based combat with boss stages every 10 levels
 - Knight health restores when advancing into the next stage
+- The knight fights in melee range and visibly swings on each attack
 - Knight damage, health, attack speed, regen, and multiplier upgrades
 - Porter heal and power-up abilities with cooldown upgrades
 - Special upgrades use one-material costs that rotate toward higher-value loot by level
