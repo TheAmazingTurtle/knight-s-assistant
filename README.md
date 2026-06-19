@@ -11,6 +11,7 @@ Knight's Assistant is an idle-ish stage battler where the knight fights enemies 
 Core MVP features:
 
 - Stage-based combat with boss stages every 10 levels
+- Stage clears animate the party traveling forward with parallax before the next fight starts
 - Knight health restores when advancing into the next stage
 - The knight fights in melee range and visibly swings on each attack
 - Combat HUD shows health bars, bag space, gold, and attack damage numbers

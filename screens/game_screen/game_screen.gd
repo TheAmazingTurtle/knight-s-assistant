@@ -18,9 +18,15 @@ const SPECIAL_UPGRADE_ORDER := [
 const KNIGHT_FIGHT_CENTER_RATIO := Vector2(0.52, 0.5)
 const ENEMY_FIGHT_CENTER_RATIO := Vector2(0.75, 0.48)
 const PORTER_HOME_CENTER_RATIO := Vector2(0.32, 0.62)
+const STAGE_TRANSITION_DURATION := 1.15
+const TRANSITION_CAMERA_DISTANCE_RATIO := 0.62
+const TRANSITION_SCREEN_LAG_RATIO := 0.14
 
 var battle_area: Control
 var loot_layer: Control
+var far_scenery_layer: Control
+var near_scenery_layer: Control
+var path_scenery_layer: Control
 var tabs: TabContainer
 var inventory_content: VBoxContainer
 var upgrades_content: VBoxContainer
@@ -57,6 +63,7 @@ var tonic_cooldown_left := 0.0
 var tonic_active_left := 0.0
 var porter_hurry_left := 0.0
 var stage_transition_timer := 0.0
+var stage_traveling := false
 var combat_paused := false
 var victory_visible := false
 var porter_center := Vector2.ZERO
@@ -90,6 +97,7 @@ func _process(delta: float) -> void:
 	if stage_transition_timer > 0.0:
 		stage_transition_timer = max(0.0, stage_transition_timer - delta)
 		if stage_transition_timer <= 0.0:
+			stage_traveling = false
 			_start_stage()
 		_refresh_battle_labels()
 		return
@@ -143,12 +151,29 @@ func _build_battle_area() -> void:
 	far_hills.anchor_bottom = 0.66
 	battle_area.add_child(far_hills)
 
+	far_scenery_layer = Control.new()
+	far_scenery_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	far_scenery_layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	battle_area.add_child(far_scenery_layer)
+	for x in [-36, 72, 184, 304, 426, 548]:
+		_add_scenery_rect(far_scenery_layer, Vector2(x, 160), Vector2(54, 10), Color("#5f7447"))
+		_add_scenery_rect(far_scenery_layer, Vector2(x + 18, 146), Vector2(22, 14), Color("#5a7044"))
+
 	var grass := ColorRect.new()
 	grass.color = Color("#4f6f43")
 	grass.anchor_top = 0.62
 	grass.anchor_right = 1.0
 	grass.anchor_bottom = 1.0
 	battle_area.add_child(grass)
+
+	near_scenery_layer = Control.new()
+	near_scenery_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	near_scenery_layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	battle_area.add_child(near_scenery_layer)
+	for x in [-28, 118, 262, 394, 526]:
+		_add_scenery_rect(near_scenery_layer, Vector2(x + 8, 196), Vector2(10, 34), Color("#4b3925"))
+		_add_scenery_rect(near_scenery_layer, Vector2(x, 174), Vector2(28, 24), Color("#3f6338"))
+		_add_scenery_rect(near_scenery_layer, Vector2(x + 16, 180), Vector2(24, 20), Color("#476d3c"))
 
 	var path := ColorRect.new()
 	path.color = Color("#8a6a49")
@@ -158,6 +183,14 @@ func _build_battle_area() -> void:
 	path.offset_left = -16
 	path.offset_right = 16
 	battle_area.add_child(path)
+
+	path_scenery_layer = Control.new()
+	path_scenery_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	path_scenery_layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	battle_area.add_child(path_scenery_layer)
+	for x in [-20, 62, 148, 236, 318, 404, 492, 578]:
+		_add_scenery_rect(path_scenery_layer, Vector2(x, 275), Vector2(13, 5), Color("#71533b"))
+		_add_scenery_rect(path_scenery_layer, Vector2(x + 38, 302), Vector2(18, 4), Color("#74573e"))
 
 	loot_layer = Control.new()
 	loot_layer.mouse_filter = Control.MOUSE_FILTER_PASS
@@ -249,6 +282,15 @@ func _build_battle_area() -> void:
 	ability_row.add_child(tonic_button)
 
 
+func _add_scenery_rect(parent: Control, position: Vector2, size: Vector2, color: Color) -> void:
+	var rect := ColorRect.new()
+	rect.color = color
+	rect.position = position
+	rect.size = size
+	rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	parent.add_child(rect)
+
+
 func _build_tab_pages() -> void:
 	var inventory_scroll := _make_scroll_page("Inventory")
 	inventory_content = inventory_scroll.get_child(0)
@@ -278,6 +320,7 @@ func _make_scroll_page(page_name: String) -> ScrollContainer:
 
 func _start_stage() -> void:
 	_clear_damage_numbers()
+	stage_traveling = false
 	enemy_stats = GameState.get_enemy_stats()
 	enemy_max_hp = float(enemy_stats.get("max_health", 1))
 	enemy_hp = enemy_max_hp
@@ -426,8 +469,9 @@ func _handle_enemy_defeated() -> void:
 		_show_victory()
 	else:
 		_restore_knight_to_full_health()
-		status_label.text = "Stage cleared"
-		stage_transition_timer = 0.85
+		status_label.text = "Traveling to Stage %d" % GameState.stage
+		stage_traveling = true
+		stage_transition_timer = STAGE_TRANSITION_DURATION
 
 
 func _handle_knight_defeated() -> void:
@@ -437,6 +481,7 @@ func _handle_knight_defeated() -> void:
 		knight_view.set_health_ratio(0.0)
 	GameState.return_to_checkpoint_after_knight_defeat()
 	status_label.text = "Knight fell. Back to Stage %d" % GameState.stage
+	stage_traveling = false
 	stage_transition_timer = 1.1
 
 
@@ -468,6 +513,14 @@ func _make_loot_position(index: int) -> Vector2:
 func _tick_loot(delta: float) -> void:
 	_cleanup_loot()
 	if porter_view == null:
+		return
+	if stage_traveling and stage_transition_timer > 0.0:
+		var travel_target := _porter_transition_center()
+		var travel_speed := GameState.get_porter_speed(true)
+		porter_center = porter_center.move_toward(travel_target, travel_speed * delta)
+		porter_view.position = porter_center - porter_view.size * 0.5
+		porter_view.set_carrying(false)
+		porter_view.set_hurry(true)
 		return
 	var target := _porter_home_center()
 	var nearest := _get_nearest_loot()
@@ -715,12 +768,16 @@ func _layout_battle_objects() -> void:
 	var area_size := battle_area.size
 	if area_size.x <= 0.0 or area_size.y <= 0.0:
 		return
+	_layout_background_layers(area_size)
+	var party_offset := _transition_party_screen_offset(area_size)
+	var camera_offset := _transition_camera_offset(area_size)
 	if loot_layer != null:
 		loot_layer.size = area_size
 	if knight_view != null:
-		knight_view.position = _knight_center() - knight_view.size * 0.5
+		knight_view.position = _knight_center() + party_offset - knight_view.size * 0.5
 	if enemy_view != null:
-		enemy_view.position = Vector2(area_size.x * ENEMY_FIGHT_CENTER_RATIO.x, area_size.y * ENEMY_FIGHT_CENTER_RATIO.y) - enemy_view.size * 0.5
+		var enemy_offset := Vector2(-camera_offset, 0.0) if stage_traveling else Vector2.ZERO
+		enemy_view.position = _enemy_center() + enemy_offset - enemy_view.size * 0.5
 	if porter_center == Vector2.ZERO:
 		porter_center = _porter_home_center()
 	if top_bag_label != null:
@@ -759,14 +816,58 @@ func _layout_battle_objects() -> void:
 		gold_label.size = Vector2(area_size.x * 0.42, 22)
 
 
+func _layout_background_layers(area_size: Vector2) -> void:
+	var camera_offset := _transition_camera_offset(area_size)
+	_set_parallax_layer_offset(far_scenery_layer, -camera_offset * 0.35)
+	_set_parallax_layer_offset(near_scenery_layer, -camera_offset * 0.65)
+	_set_parallax_layer_offset(path_scenery_layer, -camera_offset)
+
+
+func _set_parallax_layer_offset(layer: Control, offset_x: float) -> void:
+	if layer == null:
+		return
+	layer.position = Vector2(offset_x, 0.0)
+
+
+func _stage_transition_progress() -> float:
+	if not stage_traveling or stage_transition_timer <= 0.0:
+		return 0.0
+	return 1.0 - clampf(stage_transition_timer / STAGE_TRANSITION_DURATION, 0.0, 1.0)
+
+
+func _stage_transition_eased_progress() -> float:
+	var progress := _stage_transition_progress()
+	return progress * progress * (3.0 - 2.0 * progress)
+
+
+func _transition_camera_offset(area_size: Vector2) -> float:
+	return area_size.x * TRANSITION_CAMERA_DISTANCE_RATIO * _stage_transition_eased_progress()
+
+
+func _transition_party_screen_offset(area_size: Vector2) -> Vector2:
+	var progress: float = _stage_transition_progress()
+	var run_lag: float = sin(progress * PI) * area_size.x * TRANSITION_SCREEN_LAG_RATIO
+	var run_bob: float = -abs(sin(progress * PI * 4.0)) * 2.0
+	return Vector2(run_lag, run_bob)
+
+
 func _knight_center() -> Vector2:
 	var area_size := battle_area.size
 	return Vector2(area_size.x * KNIGHT_FIGHT_CENTER_RATIO.x, area_size.y * KNIGHT_FIGHT_CENTER_RATIO.y)
 
 
+func _enemy_center() -> Vector2:
+	var area_size := battle_area.size
+	return Vector2(area_size.x * ENEMY_FIGHT_CENTER_RATIO.x, area_size.y * ENEMY_FIGHT_CENTER_RATIO.y)
+
+
 func _porter_home_center() -> Vector2:
 	var area_size := battle_area.size
 	return Vector2(area_size.x * PORTER_HOME_CENTER_RATIO.x, area_size.y * PORTER_HOME_CENTER_RATIO.y)
+
+
+func _porter_transition_center() -> Vector2:
+	return _knight_center() + _transition_party_screen_offset(battle_area.size) + Vector2(-62, 30)
 
 
 func _show_victory() -> void:
