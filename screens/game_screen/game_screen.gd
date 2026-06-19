@@ -429,7 +429,7 @@ func _collect_loot(loot: Control) -> void:
 	var discarded: int = max(0, loot.amount - added)
 	var loot_name := GameState.get_loot_name(loot.loot_id)
 	if discarded <= 0:
-		status_label.text = "+%d %s" % [added, loot_name]
+		status_label.text = "+%s" % loot_name if added == 1 else "+%d %s" % [added, loot_name]
 	elif added > 0:
 		status_label.text = "Bag full: +%d %s, discarded %d" % [added, loot_name, discarded]
 	else:

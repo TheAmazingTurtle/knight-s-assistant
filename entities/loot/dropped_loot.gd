@@ -55,6 +55,3 @@ func _draw() -> void:
 		PackedColorArray([tint + glow, tint.darkened(0.1) + glow, tint.darkened(0.25) + glow, tint.lightened(0.15) + glow])
 	)
 	draw_rect(Rect2(Vector2(15, 11), Vector2(7, 4)), tint.lightened(0.45))
-	if amount > 1:
-		var font := get_theme_default_font()
-		draw_string(font, Vector2(20, 34), str(amount), HORIZONTAL_ALIGNMENT_CENTER, 16.0, 10, Color(0.11, 0.08, 0.07))

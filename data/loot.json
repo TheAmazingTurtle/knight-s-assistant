@@ -28,18 +28,18 @@
   },
   "drop_tables": {
     "normal": [
-      {"id": "scrap", "weight": 48, "min": 1, "max": 3},
-      {"id": "hide", "weight": 26, "min": 1, "max": 2},
-      {"id": "iron", "weight": 18, "min": 1, "max": 2},
+      {"id": "scrap", "weight": 48, "min": 1, "max": 1},
+      {"id": "hide", "weight": 26, "min": 1, "max": 1},
+      {"id": "iron", "weight": 18, "min": 1, "max": 1},
       {"id": "ember", "weight": 7, "min": 1, "max": 1},
       {"id": "gem", "weight": 1, "min": 1, "max": 1}
     ],
     "boss": [
-      {"id": "scrap", "weight": 25, "min": 3, "max": 6},
-      {"id": "hide", "weight": 20, "min": 2, "max": 5},
-      {"id": "iron", "weight": 24, "min": 2, "max": 4},
-      {"id": "ember", "weight": 20, "min": 1, "max": 3},
-      {"id": "gem", "weight": 11, "min": 1, "max": 2}
+      {"id": "scrap", "weight": 25, "min": 1, "max": 1},
+      {"id": "hide", "weight": 20, "min": 1, "max": 1},
+      {"id": "iron", "weight": 24, "min": 1, "max": 1},
+      {"id": "ember", "weight": 20, "min": 1, "max": 1},
+      {"id": "gem", "weight": 11, "min": 1, "max": 1}
     ]
   },
   "drops_per_enemy": {

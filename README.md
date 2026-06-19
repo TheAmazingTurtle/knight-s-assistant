@@ -14,7 +14,7 @@ Core MVP features:
 - Knight health restores when advancing into the next stage
 - Knight damage, health, attack speed, regen, and multiplier upgrades
 - Porter heal and power-up abilities with cooldown upgrades
-- Loot drops, porter collection, tap/swipe speed-up interaction, inventory limits, locks, and selling
+- Single-item loot drops, porter collection, tap/swipe speed-up interaction, inventory limits, locks, and selling
 - Overflow loot is discarded on pickup when the bag is full, so progression is not blocked
 - Autosave for stage progress, gold, inventory, locked loot, and upgrades
 - Web export hosted through GitHub Pages
