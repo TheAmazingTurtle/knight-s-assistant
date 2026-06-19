@@ -1,0 +1,53 @@
+# Knight's Assistant
+
+A cozy pixel RPG MVP built in Godot 4.7 for a portrait phone viewport.
+
+Play it here: https://theamazingturtle.github.io/knight-s-assistant/
+
+## About
+
+Knight's Assistant is an idle-ish stage battler where the knight fights enemies while the porter follows behind collecting dropped loot. The player sells materials, upgrades the party, and pushes through boss checkpoints toward stage 100.
+
+Core MVP features:
+
+- Stage-based combat with boss stages every 10 levels
+- Knight damage, health, attack speed, regen, and multiplier upgrades
+- Porter heal and power-up abilities with cooldown upgrades
+- Loot drops, porter collection, tap/swipe speed-up interaction, inventory limits, locks, and selling
+- Autosave for stage progress, gold, inventory, locked loot, and upgrades
+- Web export hosted through GitHub Pages
+
+## Credits
+
+Game concept and direction by Kent.
+
+MVP implementation, project wiring, and README by Codex.
+
+## Development
+
+This project uses Godot `4.7`.
+
+Main scene:
+
+```text
+core/main.tscn
+```
+
+Important folders:
+
+```text
+autoloads/   Global managers and game state
+core/        Main scene container
+data/        Combat, loot, stage scaling, and upgrade JSON
+entities/    Knight, porter, enemy, and loot scripts
+screens/     Start and game screens
+docs/        GitHub Pages web export
+```
+
+Run locally by opening the project in Godot and pressing Play.
+
+## Web Export
+
+The hosted build lives in `docs/` and GitHub Pages is configured to serve `master` from `/docs`.
+
+When exporting for GitHub Pages, use a Web export with thread support disabled so the game does not require cross-origin isolation headers.
