@@ -348,6 +348,7 @@ func _handle_enemy_defeated() -> void:
 	if won:
 		_show_victory()
 	else:
+		_restore_knight_to_full_health()
 		status_label.text = "Stage cleared"
 		stage_transition_timer = 0.85
 
@@ -592,6 +593,13 @@ func _sync_knight_stats_after_upgrade() -> void:
 	knight_hp = clampf(knight_hp, 0.0, knight_max_hp)
 	if knight_view != null:
 		knight_view.set_health_ratio(knight_hp / knight_max_hp)
+
+
+func _restore_knight_to_full_health() -> void:
+	knight_max_hp = GameState.get_knight_max_health()
+	knight_hp = knight_max_hp
+	if knight_view != null:
+		knight_view.set_health_ratio(1.0)
 
 
 func _refresh_battle_labels() -> void:
