@@ -43,7 +43,7 @@
     ]
   },
   "drops_per_enemy": {
-    "normal": 4,
-    "boss": 7
+    "normal": 18,
+    "boss": 36
   }
 }

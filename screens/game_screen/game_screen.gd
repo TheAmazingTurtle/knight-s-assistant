@@ -447,6 +447,7 @@ func _knight_attack() -> void:
 	if enemy_view != null:
 		enemy_view.pulse_hit()
 		enemy_view.set_health_ratio(enemy_hp / enemy_max_hp)
+	_maybe_drop_attack_loot()
 	_check_drop_thresholds()
 	if enemy_hp <= 0.0:
 		_handle_enemy_defeated()
@@ -522,6 +523,21 @@ func _drop_next_enemy_loot() -> void:
 		return
 	var drop: Dictionary = remaining_enemy_loot.pop_front()
 	_spawn_loot_from_drop(drop)
+
+
+func _maybe_drop_attack_loot() -> void:
+	if remaining_enemy_loot.is_empty():
+		return
+	if active_loot.size() >= GameState.get_max_active_loot():
+		return
+	var is_boss := bool(enemy_stats.get("is_boss", false))
+	if GameState.rng.randf() > GameState.get_attack_loot_drop_chance(is_boss):
+		return
+	var burst_count := GameState.get_attack_loot_burst_count(is_boss)
+	for i in range(burst_count):
+		if remaining_enemy_loot.is_empty() or active_loot.size() >= GameState.get_max_active_loot():
+			return
+		_drop_next_enemy_loot()
 
 
 func _handle_enemy_defeated() -> void:
