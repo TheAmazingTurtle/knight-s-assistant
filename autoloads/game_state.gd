@@ -403,6 +403,25 @@ func get_loot_drop_thresholds() -> Array:
 	return combat_data.get("loot_drop_thresholds", [0.75, 0.5, 0.25])
 
 
+func get_attack_loot_drop_chance(is_boss: bool) -> float:
+	var config: Dictionary = combat_data.get("loot_rain", {})
+	var key := "boss_attack_drop_chance" if is_boss else "attack_drop_chance"
+	return clampf(float(config.get(key, 0.0)), 0.0, 1.0)
+
+
+func get_attack_loot_burst_count(is_boss: bool) -> int:
+	var config: Dictionary = combat_data.get("loot_rain", {})
+	var min_count: int = max(1, int(config.get("burst_min", 1)))
+	var max_key := "boss_burst_max" if is_boss else "burst_max"
+	var max_count: int = max(min_count, int(config.get(max_key, min_count)))
+	return rng.randi_range(min_count, max_count)
+
+
+func get_max_active_loot() -> int:
+	var config: Dictionary = combat_data.get("loot_rain", {})
+	return max(1, int(config.get("max_active_loot", 18)))
+
+
 func get_drops_per_enemy(is_boss: bool) -> int:
 	var key := "boss" if is_boss else "normal"
 	return int(loot_data.get("drops_per_enemy", {}).get(key, 4))
