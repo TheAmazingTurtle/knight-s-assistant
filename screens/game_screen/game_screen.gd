@@ -544,8 +544,13 @@ func _make_upgrade_row(title: String, level: int, cost: String) -> HBoxContainer
 
 
 func _format_special_cost(upgrade_id: String) -> String:
+	var costs := GameState.get_special_upgrade_costs(upgrade_id)
+	if costs.size() == 1:
+		var cost: Dictionary = costs[0]
+		var loot_id := str(cost.get("loot", ""))
+		return "Need %d %s" % [int(cost.get("amount", 0)), GameState.get_loot_name(loot_id)]
 	var parts: Array = []
-	for cost in GameState.get_special_upgrade_costs(upgrade_id):
+	for cost in costs:
 		var loot_id := str(cost.get("loot", ""))
 		parts.append("%d %s" % [int(cost.get("amount", 0)), GameState.get_loot_name(loot_id)])
 	return ", ".join(parts)
