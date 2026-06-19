@@ -64,6 +64,7 @@ var tonic_active_left := 0.0
 var porter_hurry_left := 0.0
 var stage_transition_timer := 0.0
 var stage_traveling := false
+var preserve_knight_health_on_stage_start := false
 var combat_paused := false
 var victory_visible := false
 var porter_center := Vector2.ZERO
@@ -98,7 +99,7 @@ func _process(delta: float) -> void:
 		stage_transition_timer = max(0.0, stage_transition_timer - delta)
 		if stage_transition_timer <= 0.0:
 			stage_traveling = false
-			_start_stage()
+			_start_stage(preserve_knight_health_on_stage_start)
 		_refresh_battle_labels()
 		return
 	if not combat_paused:
@@ -318,14 +319,15 @@ func _make_scroll_page(page_name: String) -> ScrollContainer:
 	return scroll
 
 
-func _start_stage() -> void:
+func _start_stage(preserve_knight_health := false) -> void:
 	_clear_damage_numbers()
+	preserve_knight_health_on_stage_start = false
 	stage_traveling = false
 	enemy_stats = GameState.get_enemy_stats()
 	enemy_max_hp = float(enemy_stats.get("max_health", 1))
 	enemy_hp = enemy_max_hp
 	knight_max_hp = GameState.get_knight_max_health()
-	knight_hp = knight_max_hp
+	knight_hp = clampf(knight_hp, 0.0, knight_max_hp) if preserve_knight_health else knight_max_hp
 	knight_attack_timer = 0.35
 	enemy_attack_timer = float(enemy_stats.get("attack_interval", 2.5))
 	combat_paused = false
@@ -340,7 +342,7 @@ func _start_stage() -> void:
 		enemy_view.configure(int(enemy_stats.get("stage", GameState.stage)), is_boss)
 		enemy_view.set_health_ratio(1.0)
 	if knight_view != null:
-		knight_view.set_health_ratio(1.0)
+		knight_view.set_health_ratio(knight_hp / knight_max_hp)
 	status_label.text = "Boss stage" if is_boss else "Stage %d" % GameState.stage
 	_refresh_tabs()
 	_refresh_battle_labels()
@@ -468,8 +470,8 @@ func _handle_enemy_defeated() -> void:
 	if won:
 		_show_victory()
 	else:
-		_restore_knight_to_full_health()
 		status_label.text = "Traveling to Stage %d" % GameState.stage
+		preserve_knight_health_on_stage_start = true
 		stage_traveling = true
 		stage_transition_timer = STAGE_TRANSITION_DURATION
 
@@ -481,6 +483,7 @@ func _handle_knight_defeated() -> void:
 		knight_view.set_health_ratio(0.0)
 	GameState.return_to_checkpoint_after_knight_defeat()
 	status_label.text = "Knight fell. Back to Stage %d" % GameState.stage
+	preserve_knight_health_on_stage_start = false
 	stage_traveling = false
 	stage_transition_timer = 1.1
 
@@ -729,13 +732,6 @@ func _sync_knight_stats_after_upgrade() -> void:
 	knight_hp = clampf(knight_hp, 0.0, knight_max_hp)
 	if knight_view != null:
 		knight_view.set_health_ratio(knight_hp / knight_max_hp)
-
-
-func _restore_knight_to_full_health() -> void:
-	knight_max_hp = GameState.get_knight_max_health()
-	knight_hp = knight_max_hp
-	if knight_view != null:
-		knight_view.set_health_ratio(1.0)
 
 
 func _refresh_battle_labels() -> void:
