@@ -156,9 +156,13 @@ func get_inventory_capacity() -> int:
 	return base_capacity + get_upgrade_level("bag_capacity") * per_level
 
 
+func get_inventory_room() -> int:
+	return max(0, get_inventory_capacity() - get_inventory_used())
+
+
 func add_loot(loot_id: String, amount: int) -> int:
 	_ensure_defaults()
-	var room: int = max(0, get_inventory_capacity() - get_inventory_used())
+	var room := get_inventory_room()
 	var added: int = min(max(amount, 0), room)
 	if added <= 0:
 		return 0
