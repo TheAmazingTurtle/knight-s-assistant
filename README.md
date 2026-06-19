@@ -14,7 +14,7 @@ Core MVP features:
 - Stage clears animate the party traveling forward with parallax before the next fight starts
 - Knight health carries forward when advancing into the next stage
 - The knight fights in melee range and visibly swings on each attack
-- Combat HUD shows health bars, bag space, gold, and attack damage numbers
+- Combat HUD shows enemy health, attack damage numbers, and a bottom menu with knight health, bag space, gold, and full-width tabs
 - Knight damage, health, attack speed, regen, and multiplier upgrades
 - Porter heal and power-up abilities with cooldown upgrades
 - Special upgrades use one-material costs with value-aware quantities by level

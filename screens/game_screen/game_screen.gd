@@ -27,13 +27,14 @@ var loot_layer: Control
 var far_scenery_layer: Control
 var near_scenery_layer: Control
 var path_scenery_layer: Control
+var lower_menu: VBoxContainer
 var tabs: TabContainer
+var tab_buttons: Array = []
 var inventory_content: VBoxContainer
 var upgrades_content: VBoxContainer
 var special_content: VBoxContainer
 
 var stage_label: Label
-var top_bag_label: Label
 var gold_label: Label
 var enemy_label: Label
 var knight_label: Label
@@ -127,19 +128,75 @@ func _build_layout() -> void:
 	add_child(root)
 
 	battle_area = Control.new()
-	battle_area.custom_minimum_size = Vector2(360, 322)
+	battle_area.custom_minimum_size = Vector2(360, 276)
 	battle_area.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	battle_area.clip_contents = true
 	root.add_child(battle_area)
 	_build_battle_area()
 
-	tabs = TabContainer.new()
-	tabs.custom_minimum_size = Vector2(360, 318)
-	tabs.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	tabs.add_theme_font_size_override("font_size", 13)
-	root.add_child(tabs)
-	_build_tab_pages()
+	_build_lower_menu(root)
 	_refresh_tabs()
+
+
+func _build_lower_menu(root: VBoxContainer) -> void:
+	var lower_panel := PanelContainer.new()
+	lower_panel.custom_minimum_size = Vector2(360, 364)
+	lower_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	lower_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	lower_panel.add_theme_stylebox_override("panel", _stylebox(Color("#2e4540"), Color("#152321")))
+	root.add_child(lower_panel)
+
+	lower_menu = VBoxContainer.new()
+	lower_menu.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	lower_menu.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	lower_menu.add_theme_constant_override("separation", 4)
+	lower_panel.add_child(lower_menu)
+
+	knight_health_bar = _make_bar(Color("#5f9f62"))
+	knight_health_bar.custom_minimum_size = Vector2(0, 14)
+	knight_health_bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	lower_menu.add_child(knight_health_bar)
+
+	knight_label = _make_label("", 13, Color("#fff1c8"))
+	knight_label.custom_minimum_size = Vector2(0, 18)
+	knight_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	lower_menu.add_child(knight_label)
+
+	var stat_row := HBoxContainer.new()
+	stat_row.custom_minimum_size = Vector2(0, 38)
+	stat_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	stat_row.add_theme_constant_override("separation", 10)
+	lower_menu.add_child(stat_row)
+
+	var bag_box := VBoxContainer.new()
+	bag_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	bag_box.add_theme_constant_override("separation", 2)
+	stat_row.add_child(bag_box)
+
+	inventory_space_label = _make_label("", 12, Color("#fff1c8"))
+	inventory_space_label.custom_minimum_size = Vector2(0, 16)
+	bag_box.add_child(inventory_space_label)
+
+	inventory_space_bar = _make_bar(Color("#d8b45a"))
+	inventory_space_bar.custom_minimum_size = Vector2(0, 13)
+	inventory_space_bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	bag_box.add_child(inventory_space_bar)
+
+	gold_label = _make_label("", 14, Color("#fff1c8"))
+	gold_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	gold_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	gold_label.custom_minimum_size = Vector2(118, 34)
+	stat_row.add_child(gold_label)
+
+	tabs = TabContainer.new()
+	tabs.custom_minimum_size = Vector2(360, 224)
+	tabs.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	tabs.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	tabs.tabs_visible = false
+	tabs.add_theme_font_size_override("font_size", 13)
+	lower_menu.add_child(tabs)
+	_build_tab_pages()
+	_build_bottom_tab_buttons()
 
 
 func _build_battle_area() -> void:
@@ -213,11 +270,6 @@ func _build_battle_area() -> void:
 	enemy_view.size = Vector2(88, 92)
 	battle_area.add_child(enemy_view)
 
-	top_bag_label = _make_label("", 13, Color("#173231"))
-	top_bag_label.position = Vector2(8, 6)
-	top_bag_label.size = Vector2(96, 22)
-	battle_area.add_child(top_bag_label)
-
 	stage_label = _make_label("", 15, Color("#173231"))
 	stage_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	stage_label.position = Vector2(104, 6)
@@ -234,32 +286,6 @@ func _build_battle_area() -> void:
 	enemy_health_bar.position = Vector2(194, 55)
 	enemy_health_bar.size = Vector2(154, 14)
 	battle_area.add_child(enemy_health_bar)
-
-	knight_label = _make_label("", 13, Color("#173231"))
-	knight_label.position = Vector2(10, 260)
-	knight_label.size = Vector2(340, 18)
-	battle_area.add_child(knight_label)
-
-	knight_health_bar = _make_bar(Color("#5f9f62"))
-	knight_health_bar.position = Vector2(10, 279)
-	knight_health_bar.size = Vector2(340, 13)
-	battle_area.add_child(knight_health_bar)
-
-	inventory_space_bar = _make_bar(Color("#d8b45a"))
-	inventory_space_bar.position = Vector2(10, 302)
-	inventory_space_bar.size = Vector2(164, 14)
-	battle_area.add_child(inventory_space_bar)
-
-	inventory_space_label = _make_label("", 12, Color("#fff1c8"))
-	inventory_space_label.position = inventory_space_bar.position + Vector2(4, -2)
-	inventory_space_label.size = Vector2(156, 18)
-	battle_area.add_child(inventory_space_label)
-
-	gold_label = _make_label("", 14, Color("#fff1c8"))
-	gold_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	gold_label.position = Vector2(190, 298)
-	gold_label.size = Vector2(158, 22)
-	battle_area.add_child(gold_label)
 
 	status_label = _make_label("", 13, Color("#fff1c8"))
 	status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -307,6 +333,41 @@ func _build_tab_pages() -> void:
 	var special_scroll := _make_scroll_page("Special")
 	special_content = special_scroll.get_child(0)
 	tabs.add_child(special_scroll)
+
+
+func _build_bottom_tab_buttons() -> void:
+	var tab_row := HBoxContainer.new()
+	tab_row.custom_minimum_size = Vector2(0, 42)
+	tab_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	tab_row.add_theme_constant_override("separation", 0)
+	lower_menu.add_child(tab_row)
+
+	var labels := ["Inventory", "Upgrades", "Special"]
+	for i in range(labels.size()):
+		var button := _make_button(str(labels[i]))
+		button.toggle_mode = true
+		button.custom_minimum_size = Vector2(0, 42)
+		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		button.pressed.connect(_on_bottom_tab_pressed.bind(i))
+		tab_row.add_child(button)
+		tab_buttons.append(button)
+	_refresh_bottom_tab_buttons()
+
+
+func _on_bottom_tab_pressed(index: int) -> void:
+	if tabs == null:
+		return
+	tabs.current_tab = index
+	_refresh_bottom_tab_buttons()
+
+
+func _refresh_bottom_tab_buttons() -> void:
+	if tabs == null:
+		return
+	for i in range(tab_buttons.size()):
+		var button := tab_buttons[i] as Button
+		if button != null:
+			button.button_pressed = i == tabs.current_tab
 
 
 func _make_scroll_page(page_name: String) -> ScrollContainer:
@@ -618,6 +679,7 @@ func _refresh_tabs() -> void:
 	_refresh_inventory_tab()
 	_refresh_gold_upgrades_tab()
 	_refresh_special_upgrades_tab()
+	_refresh_bottom_tab_buttons()
 
 
 func _refresh_inventory_tab() -> void:
@@ -757,7 +819,6 @@ func _refresh_battle_labels() -> void:
 	var inventory_ratio := 0.0
 	if inventory_capacity > 0:
 		inventory_ratio = float(inventory_used) / float(inventory_capacity)
-	top_bag_label.text = "Bag %d/%d" % [inventory_used, inventory_capacity]
 	stage_label.text = "Stage %d/%d" % [GameState.stage, GameState.get_max_stage()]
 	gold_label.text = "%d gold" % GameState.gold
 	enemy_label.text = "%s  %.0f/%.0f" % [str(enemy_stats.get("name", "Enemy")), enemy_hp, enemy_max_hp]
@@ -791,9 +852,6 @@ func _layout_battle_objects() -> void:
 		enemy_view.position = _enemy_center() + enemy_offset - enemy_view.size * 0.5
 	if porter_center == Vector2.ZERO:
 		porter_center = _porter_home_center()
-	if top_bag_label != null:
-		top_bag_label.position = Vector2(8, 6)
-		top_bag_label.size = Vector2(96, 22)
 	if stage_label != null:
 		stage_label.position = Vector2(area_size.x * 0.31, 6)
 		stage_label.size = Vector2(area_size.x * 0.38, 22)
@@ -809,22 +867,6 @@ func _layout_battle_objects() -> void:
 	if status_label != null:
 		status_label.position = Vector2(10, ability_row.position.y - 24.0)
 		status_label.size = Vector2(max(0.0, area_size.x - 20.0), 22)
-	var lower_hud_y: float = min(area_size.y - 50.0, ability_row.position.y + 44.0)
-	if knight_label != null:
-		knight_label.position = Vector2(10, lower_hud_y)
-		knight_label.size = Vector2(max(0.0, area_size.x - 20.0), 17)
-	if knight_health_bar != null:
-		knight_health_bar.position = Vector2(10, lower_hud_y + 18.0)
-		knight_health_bar.size = Vector2(max(0.0, area_size.x - 20.0), 13)
-	if inventory_space_bar != null:
-		inventory_space_bar.position = Vector2(10, lower_hud_y + 34.0)
-		inventory_space_bar.size = Vector2(max(0.0, area_size.x * 0.47), 14)
-	if inventory_space_label != null and inventory_space_bar != null:
-		inventory_space_label.position = inventory_space_bar.position + Vector2(4, -2)
-		inventory_space_label.size = inventory_space_bar.size + Vector2(-8, 4)
-	if gold_label != null:
-		gold_label.position = Vector2(area_size.x * 0.54, lower_hud_y + 31.0)
-		gold_label.size = Vector2(area_size.x * 0.42, 22)
 
 
 func _layout_background_layers(area_size: Vector2) -> void:
