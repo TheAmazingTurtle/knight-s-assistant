@@ -271,9 +271,14 @@ func get_special_upgrade_costs(upgrade_id: String) -> Array:
 	var sequence: Array = upgrade_data.get("special_cost_sequences", {}).get(sequence_id, [])
 	if not sequence.is_empty():
 		var sequence_index: int = min(level, sequence.size() - 1)
+		var loot_id := str(sequence[sequence_index])
+		var base_value := float(config.get("base_value_cost", 10))
+		var value_growth := float(config.get("value_cost_growth", 1.35))
+		var target_value := base_value * pow(value_growth, level)
+		var loot_value: int = max(1, get_loot_sell_value(loot_id))
 		return [{
-			"loot": str(sequence[sequence_index]),
-			"amount": max(1, int(config.get("cost_amount", 1)))
+			"loot": loot_id,
+			"amount": max(1, int(ceil(target_value / float(loot_value))))
 		}]
 	var growth := float(config.get("cost_growth", 1.4))
 	var scaled_costs: Array = []
