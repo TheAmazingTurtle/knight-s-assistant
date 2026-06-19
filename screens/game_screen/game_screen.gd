@@ -426,13 +426,14 @@ func _get_nearest_loot() -> Control:
 
 func _collect_loot(loot: Control) -> void:
 	var added := GameState.add_loot(loot.loot_id, loot.amount)
+	var discarded: int = max(0, loot.amount - added)
 	var loot_name := GameState.get_loot_name(loot.loot_id)
-	if added >= loot.amount:
-		status_label.text = "+%d %s" % [loot.amount, loot_name]
+	if discarded <= 0:
+		status_label.text = "+%d %s" % [added, loot_name]
 	elif added > 0:
-		status_label.text = "Bag full: +%d %s" % [added, loot_name]
+		status_label.text = "Bag full: +%d %s, discarded %d" % [added, loot_name, discarded]
 	else:
-		status_label.text = "Bag full"
+		status_label.text = "Bag full: discarded %s" % loot_name
 	active_loot.erase(loot)
 	loot.queue_free()
 
