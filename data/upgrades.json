@@ -1,0 +1,88 @@
+{
+  "gold_upgrades": {
+    "knight_damage": {
+      "name": "Knight Damage",
+      "base_cost": 25,
+      "cost_growth": 1.5,
+      "max_level": 100,
+      "value_per_level": 4
+    },
+    "knight_health": {
+      "name": "Knight Health",
+      "base_cost": 30,
+      "cost_growth": 1.48,
+      "max_level": 100,
+      "value_per_level": 25
+    },
+    "bag_capacity": {
+      "name": "Bag Capacity",
+      "base_cost": 35,
+      "cost_growth": 1.42,
+      "max_level": 50,
+      "base_capacity": 18,
+      "value_per_level": 5
+    }
+  },
+  "special_upgrades": {
+    "attack_speed": {
+      "name": "Attack Speed",
+      "max_level": 20,
+      "cost_growth": 1.45,
+      "value_per_level": 0.05,
+      "costs": [
+        {"loot": "iron", "amount": 4},
+        {"loot": "scrap", "amount": 10}
+      ]
+    },
+    "health_regen": {
+      "name": "Health Regen",
+      "max_level": 20,
+      "cost_growth": 1.4,
+      "value_per_level": 1.2,
+      "costs": [
+        {"loot": "hide", "amount": 8},
+        {"loot": "ember", "amount": 1}
+      ]
+    },
+    "health_multiplier": {
+      "name": "Health Multiplier",
+      "max_level": 20,
+      "cost_growth": 1.55,
+      "value_per_level": 0.08,
+      "costs": [
+        {"loot": "gem", "amount": 1},
+        {"loot": "iron", "amount": 6}
+      ]
+    },
+    "porter_heal_cooldown": {
+      "name": "Potion Cooldown",
+      "max_level": 15,
+      "cost_growth": 1.45,
+      "value_per_level": 0.8,
+      "costs": [
+        {"loot": "hide", "amount": 10},
+        {"loot": "scrap", "amount": 12}
+      ]
+    },
+    "porter_tonic_multiplier": {
+      "name": "Tonic Effect",
+      "max_level": 15,
+      "cost_growth": 1.5,
+      "value_per_level": 0.18,
+      "costs": [
+        {"loot": "ember", "amount": 2},
+        {"loot": "iron", "amount": 8}
+      ]
+    },
+    "porter_tonic_cooldown": {
+      "name": "Tonic Cooldown",
+      "max_level": 15,
+      "cost_growth": 1.48,
+      "value_per_level": 1.1,
+      "costs": [
+        {"loot": "gem", "amount": 1},
+        {"loot": "hide", "amount": 12}
+      ]
+    }
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "loot_types": {
+    "scrap": {
+      "name": "Scrap",
+      "sell_value": 1,
+      "color": "#b57a48"
+    },
+    "hide": {
+      "name": "Hide",
+      "sell_value": 2,
+      "color": "#7a4b35"
+    },
+    "iron": {
+      "name": "Iron",
+      "sell_value": 4,
+      "color": "#9aa7b1"
+    },
+    "ember": {
+      "name": "Ember",
+      "sell_value": 7,
+      "color": "#d85b33"
+    },
+    "gem": {
+      "name": "Gem",
+      "sell_value": 12,
+      "color": "#48b5b8"
+    }
+  },
+  "drop_tables": {
+    "normal": [
+      {"id": "scrap", "weight": 48, "min": 1, "max": 3},
+      {"id": "hide", "weight": 26, "min": 1, "max": 2},
+      {"id": "iron", "weight": 18, "min": 1, "max": 2},
+      {"id": "ember", "weight": 7, "min": 1, "max": 1},
+      {"id": "gem", "weight": 1, "min": 1, "max": 1}
+    ],
+    "boss": [
+      {"id": "scrap", "weight": 25, "min": 3, "max": 6},
+      {"id": "hide", "weight": 20, "min": 2, "max": 5},
+      {"id": "iron", "weight": 24, "min": 2, "max": 4},
+      {"id": "ember", "weight": 20, "min": 1, "max": 3},
+      {"id": "gem", "weight": 11, "min": 1, "max": 2}
+    ]
+  },
+  "drops_per_enemy": {
+    "normal": 4,
+    "boss": 7
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "max_stage": 100,
+  "knight": {
+    "base_damage": 7,
+    "base_health": 90,
+    "base_attack_interval": 1.2
+  },
+  "porter": {
+    "heal_percent": 0.8,
+    "base_heal_cooldown": 18.0,
+    "heal_cooldown_reduction": 0.8,
+    "min_heal_cooldown": 6.0,
+    "base_tonic_multiplier": 1.6,
+    "tonic_multiplier_per_level": 0.18,
+    "base_tonic_cooldown": 28.0,
+    "tonic_cooldown_reduction": 1.1,
+    "min_tonic_cooldown": 10.0,
+    "tonic_duration": 7.0,
+    "base_speed": 70.0,
+    "hurry_speed": 170.0,
+    "hurry_duration": 1.25
+  },
+  "enemy": {
+    "base_attack_interval": 2.5
+  },
+  "loot_drop_thresholds": [0.75, 0.5, 0.25]
+}
