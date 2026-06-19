@@ -15,9 +15,9 @@ const SPECIAL_UPGRADE_ORDER := [
 	"porter_tonic_multiplier",
 	"porter_tonic_cooldown"
 ]
-const KNIGHT_FIGHT_CENTER_RATIO := Vector2(0.52, 0.64)
-const ENEMY_FIGHT_CENTER_RATIO := Vector2(0.75, 0.58)
-const PORTER_HOME_CENTER_RATIO := Vector2(0.32, 0.7)
+const KNIGHT_FIGHT_CENTER_RATIO := Vector2(0.52, 0.5)
+const ENEMY_FIGHT_CENTER_RATIO := Vector2(0.75, 0.48)
+const PORTER_HOME_CENTER_RATIO := Vector2(0.32, 0.62)
 
 var battle_area: Control
 var loot_layer: Control
@@ -27,12 +27,15 @@ var upgrades_content: VBoxContainer
 var special_content: VBoxContainer
 
 var stage_label: Label
+var top_bag_label: Label
 var gold_label: Label
 var enemy_label: Label
 var knight_label: Label
+var inventory_space_label: Label
 var status_label: Label
 var enemy_health_bar: ProgressBar
 var knight_health_bar: ProgressBar
+var inventory_space_bar: ProgressBar
 var heal_button: Button
 var tonic_button: Button
 var ability_row: HBoxContainer
@@ -58,6 +61,7 @@ var combat_paused := false
 var victory_visible := false
 var porter_center := Vector2.ZERO
 var active_loot: Array = []
+var damage_numbers: Array = []
 var remaining_enemy_loot: Array = []
 var drop_thresholds: Array = []
 var next_drop_threshold_index := 0
@@ -79,6 +83,7 @@ func _process(delta: float) -> void:
 	_layout_battle_objects()
 	_tick_cooldowns(delta)
 	_tick_loot(delta)
+	_tick_damage_numbers(delta)
 	if victory_visible:
 		_refresh_battle_labels()
 		return
@@ -171,36 +176,53 @@ func _build_battle_area() -> void:
 	enemy_view.size = Vector2(88, 92)
 	battle_area.add_child(enemy_view)
 
-	stage_label = _make_label("", 16, Color("#173231"))
-	stage_label.position = Vector2(10, 6)
-	stage_label.size = Vector2(150, 24)
+	top_bag_label = _make_label("", 13, Color("#173231"))
+	top_bag_label.position = Vector2(8, 6)
+	top_bag_label.size = Vector2(96, 22)
+	battle_area.add_child(top_bag_label)
+
+	stage_label = _make_label("", 15, Color("#173231"))
+	stage_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	stage_label.position = Vector2(104, 6)
+	stage_label.size = Vector2(152, 22)
 	battle_area.add_child(stage_label)
 
-	gold_label = _make_label("", 16, Color("#173231"))
-	gold_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	gold_label.position = Vector2(210, 6)
-	gold_label.size = Vector2(138, 24)
-	battle_area.add_child(gold_label)
-
 	enemy_label = _make_label("", 13, Color("#173231"))
-	enemy_label.position = Vector2(116, 32)
-	enemy_label.size = Vector2(232, 18)
+	enemy_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	enemy_label.position = Vector2(194, 36)
+	enemy_label.size = Vector2(154, 18)
 	battle_area.add_child(enemy_label)
 
 	enemy_health_bar = _make_bar(Color("#b94b40"))
-	enemy_health_bar.position = Vector2(116, 51)
-	enemy_health_bar.size = Vector2(232, 14)
+	enemy_health_bar.position = Vector2(194, 55)
+	enemy_health_bar.size = Vector2(154, 14)
 	battle_area.add_child(enemy_health_bar)
 
 	knight_label = _make_label("", 13, Color("#173231"))
-	knight_label.position = Vector2(10, 32)
-	knight_label.size = Vector2(96, 18)
+	knight_label.position = Vector2(10, 260)
+	knight_label.size = Vector2(340, 18)
 	battle_area.add_child(knight_label)
 
 	knight_health_bar = _make_bar(Color("#5f9f62"))
-	knight_health_bar.position = Vector2(10, 51)
-	knight_health_bar.size = Vector2(96, 14)
+	knight_health_bar.position = Vector2(10, 279)
+	knight_health_bar.size = Vector2(340, 13)
 	battle_area.add_child(knight_health_bar)
+
+	inventory_space_bar = _make_bar(Color("#d8b45a"))
+	inventory_space_bar.position = Vector2(10, 302)
+	inventory_space_bar.size = Vector2(164, 14)
+	battle_area.add_child(inventory_space_bar)
+
+	inventory_space_label = _make_label("", 12, Color("#fff1c8"))
+	inventory_space_label.position = inventory_space_bar.position + Vector2(4, -2)
+	inventory_space_label.size = Vector2(156, 18)
+	battle_area.add_child(inventory_space_label)
+
+	gold_label = _make_label("", 14, Color("#fff1c8"))
+	gold_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	gold_label.position = Vector2(190, 298)
+	gold_label.size = Vector2(158, 22)
+	battle_area.add_child(gold_label)
 
 	status_label = _make_label("", 13, Color("#fff1c8"))
 	status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -255,6 +277,7 @@ func _make_scroll_page(page_name: String) -> ScrollContainer:
 
 
 func _start_stage() -> void:
+	_clear_damage_numbers()
 	enemy_stats = GameState.get_enemy_stats()
 	enemy_max_hp = float(enemy_stats.get("max_health", 1))
 	enemy_hp = enemy_max_hp
@@ -308,6 +331,7 @@ func _knight_attack() -> void:
 	if tonic_active_left > 0.0:
 		damage *= GameState.get_tonic_multiplier()
 	enemy_hp = max(0.0, enemy_hp - damage)
+	_spawn_damage_number(damage)
 	if knight_view != null:
 		knight_view.pulse_attack()
 	if enemy_view != null:
@@ -324,6 +348,56 @@ func _enemy_attack() -> void:
 		knight_view.set_health_ratio(knight_hp / knight_max_hp)
 	if knight_hp <= 0.0:
 		_handle_knight_defeated()
+
+
+func _spawn_damage_number(damage: float) -> void:
+	if battle_area == null:
+		return
+	var number := _make_label("-%d" % int(round(damage)), 18, Color("#ffe08a"))
+	number.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	number.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	number.size = Vector2(72, 24)
+	number.add_theme_color_override("font_outline_color", Color("#4b2819"))
+	number.add_theme_constant_override("outline_size", 2)
+	var anchor := Vector2(battle_area.size.x * 0.72, battle_area.size.y * 0.33)
+	if enemy_view != null:
+		anchor = enemy_view.position + Vector2(enemy_view.size.x * 0.48, enemy_view.size.y * 0.1)
+	number.position = anchor + Vector2(GameState.rng.randf_range(-18.0, 8.0), GameState.rng.randf_range(-8.0, 6.0))
+	battle_area.add_child(number)
+	damage_numbers.append({
+		"label": number,
+		"life": 0.75,
+		"duration": 0.75,
+		"velocity": Vector2(GameState.rng.randf_range(-8.0, 8.0), -34.0)
+	})
+
+
+func _tick_damage_numbers(delta: float) -> void:
+	for i in range(damage_numbers.size() - 1, -1, -1):
+		var entry: Dictionary = damage_numbers[i]
+		var number := entry.get("label") as Label
+		if number == null or not is_instance_valid(number):
+			damage_numbers.remove_at(i)
+			continue
+		var life := float(entry.get("life", 0.0)) - delta
+		if life <= 0.0:
+			damage_numbers.remove_at(i)
+			number.queue_free()
+			continue
+		entry["life"] = life
+		var duration: float = max(0.01, float(entry.get("duration", 0.75)))
+		var velocity: Vector2 = entry.get("velocity", Vector2.ZERO)
+		number.position += velocity * delta
+		number.modulate.a = clampf(life / duration, 0.0, 1.0)
+		damage_numbers[i] = entry
+
+
+func _clear_damage_numbers() -> void:
+	for entry in damage_numbers:
+		var number := entry.get("label") as Label
+		if number != null and is_instance_valid(number):
+			number.queue_free()
+	damage_numbers.clear()
 
 
 func _check_drop_thresholds() -> void:
@@ -614,12 +688,20 @@ func _restore_knight_to_full_health() -> void:
 func _refresh_battle_labels() -> void:
 	if stage_label == null:
 		return
+	var inventory_used := GameState.get_inventory_used()
+	var inventory_capacity := GameState.get_inventory_capacity()
+	var inventory_ratio := 0.0
+	if inventory_capacity > 0:
+		inventory_ratio = float(inventory_used) / float(inventory_capacity)
+	top_bag_label.text = "Bag %d/%d" % [inventory_used, inventory_capacity]
 	stage_label.text = "Stage %d/%d" % [GameState.stage, GameState.get_max_stage()]
 	gold_label.text = "%d gold" % GameState.gold
 	enemy_label.text = "%s  %.0f/%.0f" % [str(enemy_stats.get("name", "Enemy")), enemy_hp, enemy_max_hp]
 	knight_label.text = "Knight %.0f/%.0f" % [knight_hp, knight_max_hp]
 	enemy_health_bar.value = clampf(enemy_hp / enemy_max_hp, 0.0, 1.0) * 100.0
 	knight_health_bar.value = clampf(knight_hp / knight_max_hp, 0.0, 1.0) * 100.0
+	inventory_space_bar.value = clampf(inventory_ratio, 0.0, 1.0) * 100.0
+	inventory_space_label.text = "Bag %d/%d" % [inventory_used, inventory_capacity]
 	heal_button.disabled = heal_cooldown_left > 0.0 or knight_hp <= 0.0 or victory_visible
 	heal_button.text = "Heal" if heal_cooldown_left <= 0.0 else "Heal %ds" % int(ceil(heal_cooldown_left))
 	tonic_button.disabled = tonic_cooldown_left > 0.0 or knight_hp <= 0.0 or victory_visible
@@ -641,12 +723,40 @@ func _layout_battle_objects() -> void:
 		enemy_view.position = Vector2(area_size.x * ENEMY_FIGHT_CENTER_RATIO.x, area_size.y * ENEMY_FIGHT_CENTER_RATIO.y) - enemy_view.size * 0.5
 	if porter_center == Vector2.ZERO:
 		porter_center = _porter_home_center()
+	if top_bag_label != null:
+		top_bag_label.position = Vector2(8, 6)
+		top_bag_label.size = Vector2(96, 22)
+	if stage_label != null:
+		stage_label.position = Vector2(area_size.x * 0.31, 6)
+		stage_label.size = Vector2(area_size.x * 0.38, 22)
+	if enemy_label != null:
+		enemy_label.position = Vector2(area_size.x * 0.54, area_size.y * 0.13)
+		enemy_label.size = Vector2(area_size.x * 0.42, 18)
+	if enemy_health_bar != null:
+		enemy_health_bar.position = Vector2(area_size.x * 0.54, area_size.y * 0.13 + 19)
+		enemy_health_bar.size = Vector2(area_size.x * 0.42, 14)
 	if ability_row != null:
-		ability_row.position = Vector2(10, max(214.0, area_size.y - 48.0))
-		ability_row.size = Vector2(max(0.0, area_size.x - 20.0), 40)
+		ability_row.position = Vector2(10, max(210.0, area_size.y - 92.0))
+		ability_row.size = Vector2(max(0.0, area_size.x - 20.0), 38)
 	if status_label != null:
 		status_label.position = Vector2(10, ability_row.position.y - 24.0)
 		status_label.size = Vector2(max(0.0, area_size.x - 20.0), 22)
+	var lower_hud_y: float = min(area_size.y - 50.0, ability_row.position.y + 44.0)
+	if knight_label != null:
+		knight_label.position = Vector2(10, lower_hud_y)
+		knight_label.size = Vector2(max(0.0, area_size.x - 20.0), 17)
+	if knight_health_bar != null:
+		knight_health_bar.position = Vector2(10, lower_hud_y + 18.0)
+		knight_health_bar.size = Vector2(max(0.0, area_size.x - 20.0), 13)
+	if inventory_space_bar != null:
+		inventory_space_bar.position = Vector2(10, lower_hud_y + 34.0)
+		inventory_space_bar.size = Vector2(max(0.0, area_size.x * 0.47), 14)
+	if inventory_space_label != null and inventory_space_bar != null:
+		inventory_space_label.position = inventory_space_bar.position + Vector2(4, -2)
+		inventory_space_label.size = inventory_space_bar.size + Vector2(-8, 4)
+	if gold_label != null:
+		gold_label.position = Vector2(area_size.x * 0.54, lower_hud_y + 31.0)
+		gold_label.size = Vector2(area_size.x * 0.42, 22)
 
 
 func _knight_center() -> Vector2:
