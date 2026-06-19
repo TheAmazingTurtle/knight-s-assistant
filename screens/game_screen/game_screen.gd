@@ -65,6 +65,7 @@ var porter_hurry_left := 0.0
 var stage_transition_timer := 0.0
 var stage_traveling := false
 var preserve_knight_health_on_stage_start := false
+var waiting_to_travel_after_loot := false
 var combat_paused := false
 var victory_visible := false
 var porter_center := Vector2.ZERO
@@ -92,6 +93,8 @@ func _process(delta: float) -> void:
 	_tick_cooldowns(delta)
 	_tick_loot(delta)
 	_tick_damage_numbers(delta)
+	if waiting_to_travel_after_loot and active_loot.is_empty():
+		_begin_stage_travel()
 	if victory_visible:
 		_refresh_battle_labels()
 		return
@@ -323,6 +326,7 @@ func _start_stage(preserve_knight_health := false) -> void:
 	_clear_damage_numbers()
 	preserve_knight_health_on_stage_start = false
 	stage_traveling = false
+	waiting_to_travel_after_loot = false
 	enemy_stats = GameState.get_enemy_stats()
 	enemy_max_hp = float(enemy_stats.get("max_health", 1))
 	enemy_hp = enemy_max_hp
@@ -470,10 +474,12 @@ func _handle_enemy_defeated() -> void:
 	if won:
 		_show_victory()
 	else:
-		status_label.text = "Traveling to Stage %d" % GameState.stage
 		preserve_knight_health_on_stage_start = true
-		stage_traveling = true
-		stage_transition_timer = STAGE_TRANSITION_DURATION
+		if active_loot.is_empty():
+			_begin_stage_travel()
+		else:
+			waiting_to_travel_after_loot = true
+			status_label.text = "Collect the loot to continue"
 
 
 func _handle_knight_defeated() -> void:
@@ -484,8 +490,16 @@ func _handle_knight_defeated() -> void:
 	GameState.return_to_checkpoint_after_knight_defeat()
 	status_label.text = "Knight fell. Back to Stage %d" % GameState.stage
 	preserve_knight_health_on_stage_start = false
+	waiting_to_travel_after_loot = false
 	stage_traveling = false
 	stage_transition_timer = 1.1
+
+
+func _begin_stage_travel() -> void:
+	waiting_to_travel_after_loot = false
+	status_label.text = "Traveling to Stage %d" % GameState.stage
+	stage_traveling = true
+	stage_transition_timer = STAGE_TRANSITION_DURATION
 
 
 func _spawn_loot_from_drop(drop: Dictionary) -> void:
@@ -558,15 +572,16 @@ func _get_nearest_loot() -> Control:
 
 
 func _collect_loot(loot: Control) -> void:
+	if GameState.get_inventory_room() < loot.amount:
+		status_label.text = "Bag full: sell loot or upgrade capacity"
+		return
 	var added := GameState.add_loot(loot.loot_id, loot.amount)
-	var discarded: int = max(0, loot.amount - added)
 	var loot_name := GameState.get_loot_name(loot.loot_id)
-	if discarded <= 0:
+	if added > 0:
 		status_label.text = "+%s" % loot_name if added == 1 else "+%d %s" % [added, loot_name]
-	elif added > 0:
-		status_label.text = "Bag full: +%d %s, discarded %d" % [added, loot_name, discarded]
 	else:
-		status_label.text = "Bag full: discarded %s" % loot_name
+		status_label.text = "Bag full: sell loot or upgrade capacity"
+		return
 	active_loot.erase(loot)
 	loot.queue_free()
 

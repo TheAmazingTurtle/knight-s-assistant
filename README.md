@@ -19,7 +19,7 @@ Core MVP features:
 - Porter heal and power-up abilities with cooldown upgrades
 - Special upgrades use one-material costs that rotate toward higher-value loot by level
 - Single-item loot drops, porter collection, tap/swipe speed-up interaction, inventory limits, locks, and selling
-- Overflow loot is discarded on pickup when the bag is full, so progression is not blocked
+- The porter waits when the bag is full, and stage travel waits for dropped loot to be collected
 - Autosave for stage progress, gold, inventory, locked loot, and upgrades
 - Web export hosted through GitHub Pages
 
