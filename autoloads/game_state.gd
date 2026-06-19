@@ -410,7 +410,7 @@ func roll_loot_drop(is_boss: bool) -> Dictionary:
 		if roll <= cursor:
 			return {
 				"id": str(entry.get("id", "scrap")),
-				"amount": rng.randi_range(int(entry.get("min", 1)), int(entry.get("max", 1)))
+				"amount": 1
 			}
 	return {"id": "scrap", "amount": 1}
 
