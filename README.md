@@ -17,7 +17,7 @@ Core MVP features:
 - Combat HUD shows health bars, bag space, gold, and attack damage numbers
 - Knight damage, health, attack speed, regen, and multiplier upgrades
 - Porter heal and power-up abilities with cooldown upgrades
-- Special upgrades use one-material costs that rotate toward higher-value loot by level
+- Special upgrades use one-material costs with value-aware quantities by level
 - Single-item loot drops, porter collection, tap/swipe speed-up interaction, inventory limits, locks, and selling
 - The porter waits when the bag is full, and stage travel waits for dropped loot to be collected
 - Autosave for stage progress, gold, inventory, locked loot, and upgrades
